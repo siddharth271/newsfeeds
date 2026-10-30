@@ -1,0 +1,12 @@
+name = "litz-cron"
+main = "index.js"
+compatibility_date = "2026-10-01"
+
+[triggers]
+crons = ["*/15 * * * *"]
+
+[vars]
+# Replace with the public repo this folder is pushed to, e.g. "your-name/litz-pipeline"
+GITHUB_REPO = "OWNER/litz-pipeline"
+
+# Set the token with: npx wrangler secret put GITHUB_TOKEN

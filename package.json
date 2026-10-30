@@ -1,0 +1,17 @@
+{
+  "name": "litz-pipeline",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Fetches tech news feeds and publishes the static JSON the Litz app reads.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node src/index.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.11.2"
+  }
+}
