@@ -12,7 +12,7 @@ const DAY = 24 * 60 * 60 * 1000;
 
 const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_', processEntities: false });
 
-const PROMOTION = /\b(sponsor|sponsored|brought to you|promo code|discount|subscribe|patreon|merch|follow (us|me)|newsletter|sign up|join us|our website|transcript|presented by|free trial|% off)\b/i;
+const PROMOTION = /\b(sponsor|sponsored|brought to you|promo code|discount|subscribe|patreon|merch|follow (us|me)|newsletter|sign up|join us|our website|transcript|presented by|free trial|% off|disclosures?|affiliates|investment advice|not financial)\b/i;
 const YOUTUBE = /https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?[^"'\s<]*v=|youtu\.be\/)([\w-]{11})/i;
 const TIMESTAMP = /^[([]?(\d{1,2}(?::\d{2}){1,2})[)\]]?\s*[-–—:]?\s*/;
 
