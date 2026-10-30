@@ -102,6 +102,11 @@ export function titleTokens(title) {
   );
 }
 
+/** Crude, but enough for headlines to treat hack, hacker and hackers as one word. */
+export function stem(word) {
+  return word.replace(/(ers?|ing|ed|s)$/, '') || word;
+}
+
 // Capitalised or numeric in headlines, but they say nothing about which event it is
 const GENERIC_NAMES = new Set(`ai app apps store stores model models agent agents startup startups massive report reports
 study update updates weekly roundup introducing announcing how us uk eu security data cloud news tech hackers
