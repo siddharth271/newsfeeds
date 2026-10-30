@@ -95,6 +95,14 @@ test('a thread lists its updates newest first and reaches every category it touc
   assert.equal(thread.updated_at, hoursAgo(1));
 });
 
+test('updates include the reports grouped under each follow-up', () => {
+  const related = [{ source: 'Wired', title: 'Binance hit', url: 'https://wired.test/1', published_date: hoursAgo(1) }];
+  const [lead, follow] = BINANCE;
+  const [thread] = threadStories([lead, { ...follow, related }]);
+  const sources = [thread.source, ...thread.related, ...thread.updates].map(item => item.source ?? item);
+  assert.deepEqual(new Set(sources), new Set(['The Hacker News', 'The Block', 'Wired']));
+});
+
 test('one publisher writing about a theme is not a developing story', () => {
   const series = threadStories([
     story('Binance hack drained wallets backing customer assets', 'CoinDesk'),

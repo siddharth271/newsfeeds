@@ -28,7 +28,7 @@ const THREAD_ANCHOR_SHARE = 0.4;
 const INCIDENT_MIN_SHARE = 0.5;
 const INCIDENT_MIN_STORIES = 3;
 const INCIDENT_WORDS = ['hack', 'breach', 'heist', 'outage'];
-const MAX_UPDATES = 40;
+const MAX_UPDATES = 60;
 
 const TOP_MAX_PER_NAME = 3;
 const BASE_HALF_LIFE_HOURS = 10;
@@ -140,7 +140,7 @@ export function clusterStories(items) {
 
     if (match) {
       match.sources.add(item.source);
-      match.related.push({ source: item.source, title: item.title, url: item.url });
+      match.related.push({ source: item.source, title: item.title, url: item.url, published_date: item.published_date });
       match.time = Math.min(match.time, time);
     } else {
       clusters.push({ lead: item, tokens, names, time, sources: new Set([item.source]), related: [] });
@@ -180,10 +180,12 @@ function buildThread([lead, ...others]) {
     weight: Math.max(...everyone.map(story => story.weight)),
     categories: [...new Set(everyone.map(story => story.category))],
     updated_at: everyone.map(story => story.published_date).sort().at(-1),
+    // Every report in the thread, so the app can show each source the card counts
     updates: others
+      .flatMap(story => [story, ...story.related])
       .sort((a, b) => b.published_date.localeCompare(a.published_date))
       .slice(0, MAX_UPDATES)
-      .map(({ id, title, source, url, published_date }) => ({ id, title, source, url, published_date })),
+      .map(({ title, source, url, published_date }) => ({ title, source, url, published_date })),
     thread_sources: [...new Set(everyone.flatMap(story => [story.source, ...story.related.map(report => report.source)]))],
     thread_text: [...everyone.map(story => story.title), lead.summary ?? ''].join(' . '),
     thread_published: everyone.map(story => story.published_date),
