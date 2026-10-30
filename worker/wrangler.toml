@@ -7,9 +7,6 @@ crons = ["*/15 * * * *"]
 
 [vars]
 GITHUB_REPO = "siddharth271/newsfeeds"
-
-[[r2_buckets]]
-binding = "FEEDS"
-bucket_name = "litz-feeds"
+FEED_BASE = "https://siddharth271.github.io/newsfeeds/static"
 
 # Set the token with: npx wrangler secret put GITHUB_TOKEN

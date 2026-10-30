@@ -1,20 +1,28 @@
 name: Publish feeds
 
-# Started every 15 minutes by the Cloudflare cron worker in worker/. GitHub's own
-# schedule below is only a backup, because scheduled runs can start late.
+# Publishes to GitHub Pages. The schedule can start late, so the optional Cloudflare
+# worker in worker/ starts runs on time and raises the alarm if publishing stops.
 on:
   workflow_dispatch:
   schedule:
-    - cron: '7 * * * *'
+    - cron: '*/15 * * * *'
 
 concurrency:
   group: publish
   cancel-in-progress: false
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   publish:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -34,14 +42,13 @@ jobs:
       # A failed run emails the repo owner, which is the alert.
       - run: npm run build
 
-      - name: Upload to R2
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        # The manifest goes last, so the freshness alarm only trusts a complete upload
+      - name: Arrange the site
         run: |
-          for file in $(ls dist/*.json | grep -v manifest) dist/manifest.json; do
-            npx --yes wrangler@4 r2 object put "litz-feeds/$(basename "$file")" \
-              --file "$file" --remote \
-              --content-type application/json
-          done
+          mkdir -p site/static
+          cp dist/*.json site/static/
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v4

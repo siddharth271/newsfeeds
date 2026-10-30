@@ -1,7 +1,5 @@
-// Serves the feeds from R2, starts the GitHub Actions pipeline on time, and raises the
-// alarm if publishing stops. Deployed with `wrangler deploy` from this folder.
-const FEED_PATH = /^\/static\/([a-z]+\.json)$/;
-const EDGE_CACHE_SECONDS = 60;
+// Starts the GitHub Actions pipeline on time and raises the alarm if publishing stops.
+// Deployed with `wrangler deploy` from this folder.
 const STALE_AFTER_MS = 2 * 60 * 60 * 1000;
 const STALE_LABEL = 'stale-feed';
 
@@ -24,10 +22,15 @@ async function startPipeline(env) {
   if (!response.ok) throw new Error(`GitHub dispatch failed: ${response.status}`);
 }
 
+async function lastPublished(env) {
+  const response = await fetch(`${env.FEED_BASE}/manifest.json`, { cf: { cacheTtl: 0 } });
+  if (!response.ok) return 0;
+  return Date.parse((await response.json()).generated_at) || 0;
+}
+
 /** Opens one GitHub issue when feeds go stale, which emails the repo owner. */
 async function checkFreshness(env, now) {
-  const manifest = await env.FEEDS.get('manifest.json');
-  const generatedAt = manifest ? Date.parse((await manifest.json()).generated_at) : 0;
+  const generatedAt = await lastPublished(env);
   if (now - generatedAt < STALE_AFTER_MS) return false;
 
   const open = await github(env, `/issues?labels=${STALE_LABEL}&state=open`);
@@ -47,31 +50,7 @@ async function checkFreshness(env, now) {
   return true;
 }
 
-async function serveFeed(request, env, ctx) {
-  const url = new URL(request.url);
-  const match = url.pathname.match(FEED_PATH);
-  if (!match || request.method !== 'GET') return new Response('Not found', { status: 404 });
-
-  // The app adds ?t= to bypass device caches, so the edge cache ignores the query
-  const cacheKey = new Request(`${url.origin}${url.pathname}`);
-  const cached = await caches.default.match(cacheKey);
-  if (cached) return cached;
-
-  const object = await env.FEEDS.get(match[1]);
-  if (!object) return new Response('Not found', { status: 404 });
-
-  const headers = new Headers();
-  object.writeHttpMetadata(headers);
-  headers.set('etag', object.httpEtag);
-  headers.set('cache-control', `public, max-age=${EDGE_CACHE_SECONDS}`);
-  const response = new Response(object.body, { headers });
-  ctx.waitUntil(caches.default.put(cacheKey, response.clone()));
-  return response;
-}
-
 export default {
-  fetch: serveFeed,
-
   async scheduled(event, env, ctx) {
     ctx.waitUntil(Promise.all([startPipeline(env), checkFreshness(env, event.scheduledTime)]));
   },
