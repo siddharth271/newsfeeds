@@ -28,7 +28,7 @@ const THREAD_ANCHOR_SHARE = 0.4;
 const INCIDENT_MIN_SHARE = 0.5;
 const INCIDENT_MIN_STORIES = 3;
 const INCIDENT_WORDS = ['hack', 'breach', 'heist', 'outage'];
-const MAX_UPDATES = 20;
+const MAX_UPDATES = 40;
 
 const TOP_MAX_PER_NAME = 3;
 const BASE_HALF_LIFE_HOURS = 10;
