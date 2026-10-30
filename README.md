@@ -24,23 +24,27 @@ more strongly). `classify: true` routes a general outlet's stories to a topic by
 
 ## Automate it for free
 
-This folder is meant to be its own **public** GitHub repo. Public repos get free Actions
-minutes; a private repo would run out of them at this schedule.
+This folder is published as its own **public** GitHub repo, `siddharth271/newsfeeds`.
+Public repos get free Actions minutes; a private repo would run out of them at this
+schedule. The Cloudflare Worker in `worker/` serves the feeds, so no domain is needed.
 
-1. Copy this folder to a new public repo, with `.github/` at the repo root.
-2. In Cloudflare, create an R2 bucket named `litz-feeds`, connect a custom domain for
-   public reads, and create an API token that can edit R2.
+1. Create the R2 bucket: `npx wrangler r2 bucket create litz-feeds`.
+2. Create a Cloudflare API token with **Workers R2 Storage: Edit**.
 3. In the GitHub repo settings, add the secrets `CLOUDFLARE_API_TOKEN` and
    `CLOUDFLARE_ACCOUNT_ID`.
 4. Run the **Publish feeds** workflow by hand and check that the files reach the bucket.
-5. Create a GitHub fine-grained token for this repo with **Actions: read and write**.
-6. In `worker/wrangler.toml`, set `GITHUB_REPO`. Then, from `worker/`:
+5. Create a GitHub fine-grained token for this repo with **Actions: read and write** and
+   **Issues: read and write**.
+6. From `worker/`:
 
    ```
-   npx wrangler secret put GITHUB_TOKEN
    npx wrangler deploy
+   npx wrangler secret put GITHUB_TOKEN
    ```
 
-7. In the app, set `FEED_BASE` in `constants/Config.js` to the bucket's domain.
+7. In the app, set `FEED_BASE` in `constants/Config.js` to the Worker's
+   `https://litz-feeds.<account>.workers.dev/static` address.
 
-A failed workflow run emails the repo owner. The app keeps showing the last good feed.
+A failed workflow run emails the repo owner. If feeds are over two hours old for any
+reason, the Worker opens a `stale-feed` GitHub issue, which also emails the owner. The app
+keeps showing the last good feed.

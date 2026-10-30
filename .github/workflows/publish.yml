@@ -38,10 +38,10 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        # The manifest goes last, so the freshness alarm only trusts a complete upload
         run: |
-          for file in dist/*.json; do
+          for file in $(ls dist/*.json | grep -v manifest) dist/manifest.json; do
             npx --yes wrangler@4 r2 object put "litz-feeds/$(basename "$file")" \
               --file "$file" --remote \
-              --content-type application/json \
-              --cache-control "public, max-age=120"
+              --content-type application/json
           done

@@ -1,4 +1,4 @@
-name = "litz-cron"
+name = "litz-feeds"
 main = "index.js"
 compatibility_date = "2026-10-01"
 
@@ -6,7 +6,10 @@ compatibility_date = "2026-10-01"
 crons = ["*/15 * * * *"]
 
 [vars]
-# Replace with the public repo this folder is pushed to, e.g. "your-name/litz-pipeline"
-GITHUB_REPO = "OWNER/litz-pipeline"
+GITHUB_REPO = "siddharth271/newsfeeds"
+
+[[r2_buckets]]
+binding = "FEEDS"
+bucket_name = "litz-feeds"
 
 # Set the token with: npx wrangler secret put GITHUB_TOKEN
