@@ -19,7 +19,7 @@ const THREAD_MIN_OVERLAP = 0.25;
 const THREAD_MAX_NAME_SHARE = 0.025;
 const THREAD_MIN_CORPUS = 500;
 const THREAD_MIN_LINKS = 2;
-const THREAD_MIN_DENSITY = 0.3;
+const TITLE_CASE_SHARE = 0.45;
 const THREAD_REPORT_LINKS = 3;
 // A name must appear in this share of a group to say what the group is about
 const THREAD_ANCHOR_SHARE = 0.4;
@@ -151,7 +151,33 @@ export function clusterStories(items) {
 }
 
 const threadWords = story => new Set([...titleTokens(story.title)].map(stem));
-const threadNames = story => new Set([...namedTokens(story.title)].filter(name => /[a-z]/.test(name)).map(stem));
+const threadNames = (story, proper) =>
+  new Set([...namedTokens(story.title)].filter(name => /[a-z]/.test(name)).map(stem).filter(name => proper.has(name)));
+
+const NAME_SHAPE = /[a-z][A-Z]|[A-Z]{2}|\d/;
+const headlineWords = title => title.split(/\s+/).map(word => word.replace(/['’]s$/, '').replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9]+$/g, '')).filter(Boolean);
+
+/**
+ * Title Case makes every headline word look like a name, so "Exploited" passes for a
+ * company. Sentence-case headlines show which capitals are real, and odd shapes like
+ * GitLab or CVE-2026 are names wherever they appear.
+ */
+function properNames(stories) {
+  const lowercase = new Set(stories.flatMap(story => headlineWords(story.title)).filter(word => /^[a-z]/.test(word)));
+  const proper = new Set();
+  for (const { title } of stories) {
+    const words = headlineWords(title);
+    for (const word of words) if (NAME_SHAPE.test(word)) proper.add(stem(word.toLowerCase()));
+
+    const capitals = words.slice(1).filter(word => /^[A-Z]/.test(word)).length;
+    if (capitals / Math.max(1, words.length - 1) >= TITLE_CASE_SHARE) continue;
+    for (const [index, word] of words.entries()) {
+      if (!/^[A-Z]/.test(word)) continue;
+      if (index > 0 || !lowercase.has(word.toLowerCase())) proper.add(stem(word.toLowerCase()));
+    }
+  }
+  return proper;
+}
 
 function linkFinder(stories) {
   const counts = new Map();
@@ -187,7 +213,7 @@ function buildThread([lead, ...others]) {
       .slice(0, MAX_UPDATES)
       .map(({ title, source, url, published_date }) => ({ title, source, url, published_date })),
     thread_sources: [...new Set(everyone.flatMap(story => [story.source, ...story.related.map(report => report.source)]))],
-    thread_text: [...everyone.map(story => story.title), lead.summary ?? ''].join(' . '),
+    thread_text: `${lead.title} . ${lead.summary ?? ''}`,
     thread_published: everyone.map(story => story.published_date),
   };
 }
@@ -195,20 +221,21 @@ function buildThread([lead, ...others]) {
 /** Folds stories about one developing event into its best report, with the rest as updates. */
 export function threadStories(stories) {
   const linked = linkFinder(stories);
+  const proper = properNames(stories);
   const byStrength = [...stories].sort((a, b) =>
     reportCount(b) - reportCount(a) || storyScore(b) - storyScore(a) || b.published_date.localeCompare(a.published_date));
 
   let threads = [];
   for (const story of byStrength) {
-    const member = { story, words: threadWords(story), names: threadNames(story), time: Date.parse(story.published_date) };
+    const member = { story, words: threadWords(story), names: threadNames(story, proper), time: Date.parse(story.published_date) };
     const thread = threads.find(members =>
       members.filter(other => linked(member, other)).length >= Math.min(THREAD_MIN_LINKS, members.length));
     if (thread) thread.push(member);
     else threads.push([member]);
   }
 
-  // Which story arrived first shapes the groups, so join two when many of their members connect.
-  // One or two links are not enough here: that is how a thread turns into a whole company.
+  // Which story arrived first shapes the groups, so reports of one incident can still be apart.
+  // Only that case merges here: joining on word overlap turns a thread into a whole company.
   const everyMember = threads.flat();
   const incidentOf = new Map();
   for (const name of new Set(everyMember.flatMap(member => [...member.names]))) {
@@ -227,17 +254,12 @@ export function threadStories(stories) {
     return anchors(a).some(name => named.includes(name));
   };
 
-  const shouldJoin = (a, b) => {
-    if (sameIncident(a, b)) return true;
-    const pairs = a.flatMap(one => b.filter(other => linked(one, other))).length;
-    return pairs >= THREAD_MIN_LINKS && pairs / (a.length * b.length) >= THREAD_MIN_DENSITY;
-  };
   let merging = true;
   while (merging) {
     merging = false;
     const joined = [];
     for (const members of threads) {
-      const match = joined.find(group => shouldJoin(members, group));
+      const match = joined.find(group => sameIncident(members, group));
       if (match) {
         match.push(...members);
         merging = true;

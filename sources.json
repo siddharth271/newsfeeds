@@ -395,6 +395,121 @@
     "classify": true
   },
   {
+    "name": "Meta Engineering",
+    "url": "https://engineering.fb.com/feed/",
+    "category": "ai",
+    "weight": 1.1
+  },
+  {
+    "name": "Apple Machine Learning",
+    "url": "https://machinelearning.apple.com/rss.xml",
+    "category": "ai",
+    "weight": 1.1
+  },
+  {
+    "name": "Crunchbase News",
+    "url": "https://news.crunchbase.com/feed/",
+    "category": "industry",
+    "weight": 1.1,
+    "classify": true
+  },
+  {
+    "name": "SiliconANGLE",
+    "url": "https://siliconangle.com/feed/",
+    "category": "industry",
+    "weight": 1,
+    "classify": true
+  },
+  {
+    "name": "GeekWire",
+    "url": "https://www.geekwire.com/feed/",
+    "category": "industry",
+    "weight": 1,
+    "classify": true
+  },
+  {
+    "name": "Rest of World",
+    "url": "https://restofworld.org/feed/latest/",
+    "category": "industry",
+    "weight": 1.1,
+    "classify": true
+  },
+  {
+    "name": "The Robot Report",
+    "url": "https://www.therobotreport.com/feed/",
+    "category": "industry",
+    "weight": 1
+  },
+  {
+    "name": "IEEE Spectrum",
+    "url": "https://spectrum.ieee.org/feeds/feed.rss",
+    "category": "industry",
+    "weight": 1.2,
+    "classify": true
+  },
+  {
+    "name": "SpaceNews",
+    "url": "https://spacenews.com/feed/",
+    "category": "industry",
+    "weight": 1
+  },
+  {
+    "name": "STAT News",
+    "url": "https://www.statnews.com/feed/",
+    "category": "industry",
+    "weight": 1,
+    "classify": true
+  },
+  {
+    "name": "Data Center Dynamics",
+    "url": "https://www.datacenterdynamics.com/en/rss/",
+    "category": "industry",
+    "weight": 1,
+    "classify": true
+  },
+  {
+    "name": "The Record",
+    "url": "https://therecord.media/feed",
+    "category": "security",
+    "weight": 1.2
+  },
+  {
+    "name": "CyberScoop",
+    "url": "https://cyberscoop.com/feed/",
+    "category": "security",
+    "weight": 1.1
+  },
+  {
+    "name": "Databricks",
+    "url": "https://www.databricks.com/feed",
+    "category": "data",
+    "weight": 1
+  },
+  {
+    "name": "Towards Data Science",
+    "url": "https://towardsdatascience.com/feed/",
+    "category": "data",
+    "weight": 0.9
+  },
+  {
+    "name": "KDnuggets",
+    "url": "https://www.kdnuggets.com/feed",
+    "category": "data",
+    "weight": 0.9
+  },
+  {
+    "name": "Data Engineering Weekly",
+    "url": "https://www.dataengineeringweekly.com/feed",
+    "category": "data",
+    "weight": 1
+  },
+  {
+    "name": "Google Cloud",
+    "url": "https://cloudblog.withgoogle.com/rss/",
+    "category": "cloud",
+    "weight": 1
+  },
+  {
     "name": "Hacker News",
     "url": "https://hnrss.org/frontpage",
     "role": "signal"

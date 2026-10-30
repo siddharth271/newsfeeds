@@ -73,6 +73,16 @@ test('a name with many unrelated stories keeps them apart', () => {
   assert.ok(threads.filter(thread => /microsoft/i.test(thread.title)).length >= 10);
 });
 
+test('title case words are not mistaken for names', () => {
+  const threads = threadStories([
+    story("Google's Gemini 4 Carbon Leads Benchmarks for Finding, Exploiting, and Patching Vulnerabilities", 'The Hacker News'),
+    story('CISA Adds Known Exploited Vulnerabilities to Catalog After Patching', 'CISA'),
+    story('Adobe Commerce Attacks Exploiting Vulnerabilities Breach Hundreds of Stores', 'SecurityWeek'),
+    ...BACKGROUND,
+  ]);
+  assert.equal(threads.filter(thread => thread.updates.length > 0).length, 0);
+});
+
 test('a company in two unrelated stories stays two stories', () => {
   const threads = threadStories([
     story('Polymarket halts trading after crypto-draining script breach', 'BleepingComputer'),

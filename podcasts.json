@@ -1,0 +1,14 @@
+[
+  { "name": "Lex Fridman Podcast", "url": "https://lexfridman.com/feed/podcast/", "topic": "AI" },
+  { "name": "Latent Space", "url": "https://api.substack.com/feed/podcast/1084089.rss", "topic": "AI" },
+  { "name": "Dwarkesh Podcast", "url": "https://api.substack.com/feed/podcast/69345.rss", "topic": "AI" },
+  { "name": "Practical AI", "url": "https://changelog.com/practicalai/feed", "topic": "AI" },
+  { "name": "Hard Fork", "url": "https://feeds.simplecast.com/l2i9YnTd", "topic": "Industry" },
+  { "name": "Acquired", "url": "https://feeds.transistor.fm/acquired", "topic": "Industry" },
+  { "name": "a16z Podcast", "url": "https://feeds.simplecast.com/JGE3yC0V", "topic": "Industry" },
+  { "name": "Sharp Tech", "url": "https://sharptech.fm/feed/podcast", "topic": "Industry" },
+  { "name": "The Changelog", "url": "https://changelog.com/podcast/feed", "topic": "Developers" },
+  { "name": "Syntax", "url": "https://feed.syntax.fm/rss", "topic": "Developers" },
+  { "name": "Darknet Diaries", "url": "https://podcast.darknetdiaries.com/", "topic": "Security" },
+  { "name": "Risky Business", "url": "https://risky.biz/feeds/risky-business/", "topic": "Security" }
+]

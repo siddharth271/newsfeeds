@@ -4,10 +4,14 @@ import path from 'node:path';
 import { parseFeed } from './parse.js';
 import { assembleFeeds, normalize, CATEGORIES } from './curate.js';
 import { enrichImages } from './images.js';
+import { enrichSummaries } from './articles.js';
+import { mergeEpisodes, parseShow } from './podcasts.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT_DIR = path.resolve(process.env.OUT_DIR ?? path.join(ROOT, 'dist'));
-const IMAGE_CACHE = path.resolve(process.env.CACHE_DIR ?? path.join(ROOT, '.cache'), 'images.json');
+const CACHE_DIR = path.resolve(process.env.CACHE_DIR ?? path.join(ROOT, '.cache'));
+const IMAGE_CACHE = path.join(CACHE_DIR, 'images.json');
+const SUMMARY_CACHE = path.join(CACHE_DIR, 'summaries.json');
 const USER_AGENT = 'LitzBot/1.0';
 const FETCH_TIMEOUT_MS = 15000;
 const CONCURRENCY = 12;
@@ -61,6 +65,19 @@ async function fetchAll(sources) {
   return results;
 }
 
+async function fetchPodcasts(now) {
+  const shows = JSON.parse(await readFile(path.join(ROOT, 'podcasts.json'), 'utf8'));
+  const results = await Promise.all(shows.map(async show => {
+    try {
+      return parseShow(await fetchWithRetry(show.url), show, now);
+    } catch (error) {
+      console.error(`Podcast ${show.name} failed: ${error.message}`);
+      return [];
+    }
+  }));
+  return mergeEpisodes(results);
+}
+
 async function writeOutput(feeds, manifest) {
   const tmpDir = `${OUT_DIR}.tmp`;
   await rm(tmpDir, { recursive: true, force: true });
@@ -94,9 +111,15 @@ async function main() {
   const feeds = assembleFeeds(items, signalItems, now);
   const everyStory = [...new Map(Object.values(feeds).flat().map(story => [story.id, story])).values()];
   const images = await enrichImages(everyStory, IMAGE_CACHE, USER_AGENT);
+  const summaries = await enrichSummaries(everyStory, SUMMARY_CACHE, USER_AGENT);
   for (const list of Object.values(feeds)) {
-    for (const story of list) story.image_url = everyStory.find(item => item.id === story.id).image_url;
+    for (const story of list) {
+      const enriched = everyStory.find(item => item.id === story.id);
+      story.image_url = enriched.image_url;
+      story.summary = enriched.summary;
+    }
   }
+  feeds.podcasts = await fetchPodcasts(now);
 
   const total = CATEGORIES.reduce((sum, category) => sum + feeds[category].length, 0);
 
@@ -106,6 +129,7 @@ async function main() {
     sources_ok: results.length - failed.length,
     sources_total: results.length,
     images,
+    summaries,
     counts: Object.fromEntries(Object.entries(feeds).map(([name, list]) => [name, list.length])),
     failed: failed.map(result => ({ source: result.source.name, error: result.error })),
   };
